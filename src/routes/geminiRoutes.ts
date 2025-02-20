@@ -3,6 +3,6 @@ import { askGemini } from "../controllers/geminiController";
 
 const router = express.Router();
 
-router.post("/ask", askGemini);
+router.post("/gemini", askGemini);
 
 export default router;

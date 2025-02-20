@@ -3,11 +3,18 @@ dotenv.config();
 
 import express, { Application, Request, Response } from "express";
 import geminiRoutes from "./routes/geminiRoutes";
+import mistralRoutes from "./routes/mistralRoutes";
+import openRouterRoutes from "./routes/openRouterRoutes";
+import multiModelRoutes from "./routes/multiModelRoutes"; // Importa a nova rota
 
 const app: Application = express();
 app.use(express.json());
 
+// Importação das rotas corretamente dentro de "/api"
 app.use("/api", geminiRoutes);
+app.use("/api", mistralRoutes);
+app.use("/api", openRouterRoutes);
+app.use("/api", multiModelRoutes); // Adiciona a nova rota
 
 app.get("/", (_req: Request, res: Response) => {
   res.send("Servidor rodando corretamente");
