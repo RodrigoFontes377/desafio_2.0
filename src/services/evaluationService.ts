@@ -164,6 +164,7 @@ export const calculateFinalScores = (evaluations: any): any => {
   type Score = {
     model: string;
     notaFinal: string;
+    notas_criterios: Record<string, string>;
   };
 
   const models = Object.keys(evaluations);
@@ -173,13 +174,18 @@ export const calculateFinalScores = (evaluations: any): any => {
     const scores = evaluations[model];
 
     if (scores.error) {
-      finalScores.push({ model, notaFinal: "Erro ao processar" });
+      finalScores.push({
+        model,
+        notaFinal: "Erro ao processar",
+        notas_criterios: {},
+      });
       return;
     }
 
     const criteria = Object.keys(scores[Object.keys(scores)[0]]);
     let totalSum = 0;
     let totalCount = 0;
+    let notas_criterios: Record<string, string> = {};
 
     criteria.forEach((criterion) => {
       let total = 0;
@@ -195,6 +201,9 @@ export const calculateFinalScores = (evaluations: any): any => {
       const average = count > 0 ? total / count : 0;
       totalSum += average;
       totalCount++;
+
+      // Armazena a média do critério
+      notas_criterios[criterion] = average.toFixed(2);
     });
 
     const notaFinal = totalCount > 0 ? totalSum / totalCount : 0;
@@ -202,17 +211,21 @@ export const calculateFinalScores = (evaluations: any): any => {
     finalScores.push({
       model,
       notaFinal: notaFinal.toFixed(2),
+      notas_criterios,
     });
   });
 
+  // Ordenando pelo ranking
   finalScores.sort(
     (a: Score, b: Score) => parseFloat(b.notaFinal) - parseFloat(a.notaFinal)
   );
 
+  // Adicionando posição no ranking
   const ranking = finalScores.map((item: Score, index: number) => ({
     posição: index + 1,
     modelo: item.model,
     notaFinal: item.notaFinal,
+    notas_criterios: item.notas_criterios, // Adiciona os critérios individuais
   }));
 
   return ranking;
