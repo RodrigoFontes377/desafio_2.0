@@ -12,13 +12,14 @@ if (!OPENROUTER_API_KEY) {
   );
 }
 
+//  Função para criar o prompt de avaliação
 const evaluationPrompt = (modelName: string, responses: any) => {
   return `
-  Você é um avaliador imparcial e irá avaliar respostas geradas por IA.
-  
-  O modelo **${modelName}** precisa avaliar as respostas abaixo usando notas de **1 a 10** para cada critério.
+  Você é um avaliador de IA. Sua única função é analisar e avaliar as respostas geradas por IA.
 
-  **Critérios:**
+  O modelo **${modelName}** deve avaliar as respostas abaixo usando notas de **1 a 10** para cada critério.
+
+  **Critérios de avaliação:**
   1. Clareza
   2. Precisão
   3. Criatividade
@@ -32,9 +33,9 @@ const evaluationPrompt = (modelName: string, responses: any) => {
   - **OpenRouter:** ${responses.openRouter}
 
   **Instruções:**
-  - Avalie todas as respostas, incluindo a sua própria.
-  - Dê uma nota de **1 a 10** para cada critério.
-  - Retorne um JSON **sem explicações** no seguinte formato:
+  - **IMPORTANTE:** A resposta **DEVE SER APENAS UM JSON VÁLIDO**.
+  - **NÃO adicione explicações antes ou depois do JSON.**
+  - **O JSON deve estar no seguinte formato exato:**
   \`\`\`json
   {
     "gemini": { "clareza": 9, "precisao": 8, "criatividade": 7, "gramatica": 10, "profundidade": 7, "coerencia": 8 },
@@ -42,10 +43,11 @@ const evaluationPrompt = (modelName: string, responses: any) => {
     "openRouter": { "clareza": 9, "precisao": 8, "criatividade": 9, "gramatica": 10, "profundidade": 7, "coerencia": 9 }
   }
   \`\`\`
+  - **Se a resposta não for um JSON válido, a avaliação será descartada.**
   `;
 };
 
-// Função para um modelo específico avaliar todas as respostas
+//  Função para um modelo específico avaliar todas as respostas
 const getModelEvaluation = async (
   model: string,
   responses: any
@@ -97,29 +99,55 @@ const getModelEvaluation = async (
       return { error: `Erro ao processar a avaliação de ${model}` };
     }
 
-    // Remove qualquer marcação ```json ... ```
-    evaluationResponse = evaluationResponse.replace(/```json|```/g, "").trim();
+    //  Removendo qualquer explicação antes do JSON
+    const formattedResponse = evaluationResponse
+      .replace(/```json|```/g, "") // Remove blocos de código markdown
+      .replace(/^[^{[]+/, "") // Remove qualquer texto antes do JSON
+      .trim();
 
-    return JSON.parse(evaluationResponse);
+    try {
+      console.log(
+        " Resposta bruta do OpenRouter antes de parsear:",
+        formattedResponse
+      );
+      return JSON.parse(formattedResponse);
+    } catch (error) {
+      console.error(" Erro ao processar JSON do OpenRouter:", error);
+      return {
+        error: "Erro ao processar JSON da resposta de OpenRouter",
+        rawResponse: formattedResponse,
+      };
+    }
   } catch (error) {
     console.error(`Erro ao avaliar respostas com ${model}:`, error);
     return { error: `Erro ao obter avaliação do ${model}` };
   }
 };
 
-// Função para obter avaliações de todos os modelos
+// Função que avalia todas as respostas em paralelo
 export const evaluateAllModels = async (responses: any): Promise<any> => {
   try {
     console.log(" Iniciando avaliação...");
 
-    const geminiEval = await getModelEvaluation("gemini", responses);
-    console.log(" Gemini avaliou todas as respostas!");
+    console.log(" Enviando respostas para Gemini...");
+    const geminiEvalPromise = getModelEvaluation("gemini", responses);
 
-    const mistralEval = await getModelEvaluation("mistral", responses);
-    console.log(" Mistral avaliou todas as respostas!");
+    console.log(" Enviando respostas para Mistral...");
+    const mistralEvalPromise = getModelEvaluation("mistral", responses);
 
-    const openRouterEval = await getModelEvaluation("openRouter", responses);
-    console.log(" OpenRouter avaliou todas as respostas!");
+    console.log(" Enviando respostas para OpenRouter...");
+    const openRouterEvalPromise = getModelEvaluation("openRouter", responses);
+
+    const [geminiEval, mistralEval, openRouterEval] = await Promise.all([
+      geminiEvalPromise,
+      mistralEvalPromise,
+      openRouterEvalPromise,
+    ]);
+
+    console.log(" Todas as avaliações concluídas!");
+    console.log("🔹 Resultado Gemini:", geminiEval);
+    console.log("🔹 Resultado Mistral:", mistralEval);
+    console.log("🔹 Resultado OpenRouter:", openRouterEval);
 
     return {
       gemini: geminiEval,
@@ -127,26 +155,29 @@ export const evaluateAllModels = async (responses: any): Promise<any> => {
       openRouter: openRouterEval,
     };
   } catch (error) {
-    console.error("Erro ao avaliar com todos os modelos:", error);
+    console.error(" Erro ao avaliar com todos os modelos:", error);
     return { error: "Erro ao obter avaliações." };
   }
 };
 
 export const calculateFinalScores = (evaluations: any): any => {
+  type Score = {
+    model: string;
+    notaFinal: string;
+  };
+
   const models = Object.keys(evaluations);
-  const finalScores: any = {};
+  const finalScores: Score[] = [];
 
   models.forEach((model) => {
     const scores = evaluations[model];
 
     if (scores.error) {
-      finalScores[model] = { error: scores.error };
+      finalScores.push({ model, notaFinal: "Erro ao processar" });
       return;
     }
 
     const criteria = Object.keys(scores[Object.keys(scores)[0]]);
-    finalScores[model] = {}; // Mantém as médias por critério
-
     let totalSum = 0;
     let totalCount = 0;
 
@@ -162,17 +193,27 @@ export const calculateFinalScores = (evaluations: any): any => {
       });
 
       const average = count > 0 ? total / count : 0;
-      finalScores[model][criterion] = average.toFixed(2);
-
-      // Acumulando valores para calcular a média final
       totalSum += average;
       totalCount++;
     });
 
-    // Adiciona a nota final consolidada para cada modelo
-    finalScores[model].nota_final =
-      totalCount > 0 ? (totalSum / totalCount).toFixed(2) : "N/A";
+    const notaFinal = totalCount > 0 ? totalSum / totalCount : 0;
+
+    finalScores.push({
+      model,
+      notaFinal: notaFinal.toFixed(2),
+    });
   });
 
-  return finalScores;
+  finalScores.sort(
+    (a: Score, b: Score) => parseFloat(b.notaFinal) - parseFloat(a.notaFinal)
+  );
+
+  const ranking = finalScores.map((item: Score, index: number) => ({
+    posição: index + 1,
+    modelo: item.model,
+    notaFinal: item.notaFinal,
+  }));
+
+  return ranking;
 };

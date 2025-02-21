@@ -32,7 +32,7 @@ export const getOpenRouterResponse = async (
       }
     );
 
-    console.log("🔍 Resposta completa do OpenRouter:", response.data);
+    console.log("Resposta completa do OpenRouter:", response.data);
 
     // Se não houver escolhas válidas, retorna erro
     if (!response.data.choices || response.data.choices.length === 0) {

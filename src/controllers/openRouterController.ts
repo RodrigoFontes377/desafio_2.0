@@ -10,7 +10,6 @@ export const askOpenRouter = async (
 
     const { messages } = req.body;
 
-    // Pegando o conteúdo da primeira mensagem corretamente
     if (
       !messages ||
       !Array.isArray(messages) ||
@@ -22,8 +21,7 @@ export const askOpenRouter = async (
       return;
     }
 
-    const question = messages[0].content; // Pegando a pergunta correta
-
+    const question = messages[0].content;
     const response = await getOpenRouterResponse(question);
     res.json({ model: "OpenRouter (LLaMA 3)", question, response });
   } catch (error) {

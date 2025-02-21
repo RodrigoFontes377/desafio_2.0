@@ -15,7 +15,7 @@ export const getMistralResponse = async (question: string): Promise<string> => {
     const response = await axios.post(
       MISTRAL_API_URL,
       {
-        model: "mistral-medium", // Você pode trocar pelo modelo desejado
+        model: "mistral-medium",
         messages: [{ role: "user", content: question }],
         temperature: 0.7,
       },
