@@ -1,20 +1,24 @@
+Aqui está o README atualizado com o link para o frontend:
+
+---
+
 # 📌 Desafio Técnico - Comparador de LLMs
 
-🎯 **Objetivo**
+🎯 **Objetivo**  
 Desenvolver uma solução que acesse pelo menos três Modelos de Linguagem de Grande Escala (LLMs) diferentes, gere respostas para uma mesma pergunta e realize uma análise comparativa da qualidade das respostas.
 
-🛠️ **Tecnologias Utilizadas**
-- **Frontend:** Next.js (React)
-- **Backend:** Express.js (Node.js)
-- **Linguagem:** TypeScript
-- **APIs Utilizadas:**
-  - Gemini (Google Generative AI)
-  - Mistral (Mistral AI)
+🛠️ **Tecnologias Utilizadas**  
+- **Frontend:** Next.js (React)  
+- **Backend:** Express.js (Node.js)  
+- **Linguagem:** TypeScript  
+- **APIs Utilizadas:**  
+  - Gemini (Google Generative AI)  
+  - Mistral (Mistral AI)  
   - OpenRouter (Acesso a múltiplos modelos)
 
 🚀 **Configuração do Projeto**
 
-### 📦 **Instalação das Dependências**
+### 📦 **Instalação das Dependências**  
 No diretório do backend e frontend, execute:
 ```bash
 npm install
@@ -22,14 +26,14 @@ npm install
 
 ### ▶️ **Execução do Projeto**
 
-#### 🔹 **Backend**
+#### 🔹 **Backend**  
 Iniciar o servidor backend:
 ```bash
 npm run dev
 ```
 
-Por padrão, o backend rodará em:
-🔗 http://localhost:8080/api/all
+Por padrão, o backend rodará em:  
+🔗 [http://localhost:8080/api/all](http://localhost:8080/api/all)
 
 **Forma correta de fazer a pergunta no Postman:**
 ```json
@@ -38,7 +42,7 @@ Por padrão, o backend rodará em:
 }
 ```
 
-### 🔧 **Configuração de Variáveis de Ambiente**
+### 🔧 **Configuração de Variáveis de Ambiente**  
 Para executar o projeto corretamente, crie um arquivo `.env` no backend e preencha com as chaves de API dos provedores:
 
 ```env
@@ -51,6 +55,11 @@ Onde obter as chaves:
 - **Gemini (Google AI):** [Obter chave](https://aistudio.google.com/apikey)
 - **Mistral AI:** [Obter chave](https://console.mistral.ai/api-keys)
 - **OpenRouter (acesso a múltiplos modelos):** [Obter chave](https://openrouter.ai/settings/keys)
+
+### 🌐 **Frontend**
+
+O frontend do desafio está disponível aqui:  
+🔗 [https://frontend-do-desafio.vercel.app/](https://frontend-do-desafio.vercel.app/)
 
 📊 **Comparação das Respostas e Avaliação**
 
@@ -79,7 +88,10 @@ Onde obter as chaves:
 - ✅ **OpenRouter** apresentou boas respostas, mas com desempenho irregular dependendo do modelo usado.
 - ✅ **Gemini** se destacou na gramática e estrutura das respostas, mas perdeu pontos em precisão.
 
-📩 **Contato**
+📩 **Contato**  
 Caso tenha alguma dúvida sobre a implementação, fique à vontade para entrar em contato! 🚀
 
 👨‍💻 **Desenvolvido por Rodrigo Sousa Fontes**
+
+--- 
+
